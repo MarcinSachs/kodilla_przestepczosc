@@ -1,6 +1,7 @@
 import utils
 
 police_shootings_data_url = 'https://uploads.kodilla.com/bootcamp/pro-data-visualization/files/fatal-police-shootings-data.csv'
+states_population_url = 'https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population'
 
 
 def main():
@@ -28,6 +29,9 @@ def main():
 
     # Tworzenie wykresu słupkowego
     utils.plot_intervention_by_day_of_week(intervention_by_day)
+
+    states_population_df = utils.create_dataframe_from_html(states_population_url)
+    print(states_population_df)
 
 
 if __name__ == "__main__":

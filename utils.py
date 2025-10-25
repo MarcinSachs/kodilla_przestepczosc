@@ -79,3 +79,19 @@ def plot_intervention_by_day_of_week(intervention_by_day):
     for index, value in enumerate(intervention_by_day):
         plt.text(index, value, str(value), ha='center', va='bottom')
     plt.show()
+
+
+def create_dataframe_from_html(url):
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        tables = pd.read_html(response.text, header=0)
+        if tables:
+            return tables[0]
+        else:
+            print("No tables found at the provided URL.")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching URL: {e}")
+        return None
