@@ -83,17 +83,39 @@ def plot_intervention_by_day_of_week(intervention_by_day):
     plt.show()
 
 
-def create_dataframe_from_html(url):
+def create_dataframe_from_html(url, table_index=0):
     headers = {'User-Agent': 'Mozilla/5.0'}
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         tables = pd.read_html(response.text, header=0)
         if tables:
-            return tables[0]
+            return tables[table_index]
         else:
             print("No tables found at the provided URL.")
             return None
     except requests.exceptions.RequestException as e:
         print(f"Error fetching URL: {e}")
         return None
+
+
+def map_state_codes(df, states_codes_df):
+    states_codes_df.drop_duplicates(subset=['USPS (& ANSI)'], inplace=True)
+    df['state'] = df['state'].map(
+        states_codes_df.set_index('USPS (& ANSI)')['Name'])
+    return df
+
+
+def map_state_population(df, states_population_df):
+    states_population_df.drop_duplicates(subset=['State'], inplace=True)
+    df['population 2010'] = df['state'].map(
+        states_population_df.set_index('State')['Census population, April 1, 2010 [1][2]'])
+    df['population 2020'] = df['state'].map(
+        states_population_df.set_index('State')['Census population, April 1, 2020 [1][2]'])
+    return df
+
+
+def convert_date_to_year_only(df):
+    df['date'] = pd.to_datetime(df['date']).dt.year
+    df.rename(columns={'date': 'year'}, inplace=True)
+    return df
