@@ -33,10 +33,12 @@ def create_dataframe_from_csv(url):
         return create_dataframe_from_csv(url)
 
 
-def calculate_mental_illness_percentage(df):
-    df['signs_of_mental_illness_percentage'] = df.get(
-        True, 0) / df.sum(axis=1) * 100
-    return df
+def calculate_mental_illness_percentage(row):
+    total = row.sum()
+    if total == 0:
+        return 0  # Zapobieganie dzieleniu przez zero
+    # sprawdzenie czy kolumna True istnieje
+    return (row[True] / total) * 100 if True in row else 0
 
 
 def get_top_mental_illness_races(df):

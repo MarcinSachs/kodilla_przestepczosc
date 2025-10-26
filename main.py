@@ -13,7 +13,8 @@ def main():
         index='race', columns='signs_of_mental_illness', aggfunc='size')
 
     # 3. Obliczenie procentu ofiar z oznakami choroby psychicznej w każdej grupie rasowej
-    pivot_table = utils.calculate_mental_illness_percentage(pivot_table)
+    pivot_table['signs_of_mental_illness_percentage'] = pivot_table.apply(
+        utils.calculate_mental_illness_percentage, axis=1)
 
     # Wyświetlenie rasy z najwyższym procentem ofiar z oznakami choroby psychicznej
     print(
