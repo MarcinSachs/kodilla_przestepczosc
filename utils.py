@@ -3,6 +3,10 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from calendar import day_name
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def get_csv_file_name_from_url(url):
@@ -36,8 +40,7 @@ def create_dataframe_from_csv(url):
 def calculate_mental_illness_percentage(row):
     total = row.sum()
     if total == 0:
-        return 0  # Zapobieganie dzieleniu przez zero
-    # sprawdzenie czy kolumna True istnieje
+        return 0
     return (row[True] / total) * 100 if True in row else 0
 
 
@@ -100,22 +103,37 @@ def create_dataframe_from_html(url, table_index=0):
 
 
 def map_state_codes(df, states_codes_df):
-    states_codes_df.drop_duplicates(subset=['USPS (& ANSI)'], inplace=True)
-    df['state'] = df['state'].map(
-        states_codes_df.set_index('USPS (& ANSI)')['Name'])
-    return df
+    try:
+        states_codes_df = states_codes_df[['USPS (& ANSI)', 'Name']].drop_duplicates(
+            subset=['USPS (& ANSI)'])
+
+        df = df.merge(states_codes_df, left_on='state',
+                      right_on='USPS (& ANSI)', how='left')
+
+        df['state'] = df['Name'].fillna(df['state'])
+
+        df = df.drop(columns=['USPS (& ANSI)', 'Name'], errors='ignore')
+
+        return df
+    except Exception as e:
+        logging.error(f"Error in map_state_codes: {e}")
+        return df
 
 
 def map_state_population(df, states_population_df):
-    states_population_df.drop_duplicates(subset=['State'], inplace=True)
-    df['population 2010'] = df['state'].map(
-        states_population_df.set_index('State')['Census population, April 1, 2010 [1][2]'])
-    df['population 2020'] = df['state'].map(
-        states_population_df.set_index('State')['Census population, April 1, 2020 [1][2]'])
-    return df
+    try:
+        states_population_df = states_population_df[[
+            'State', 'Census population, April 1, 2020 [1][2]']].drop_duplicates(subset=['State'])
 
+        df = df.merge(states_population_df, left_on='state',
+                      right_on='State', how='left')
 
-def convert_date_to_year_only(df):
-    df['date'] = pd.to_datetime(df['date']).dt.year
-    df.rename(columns={'date': 'year'}, inplace=True)
-    return df
+        df['population'] = df['Census population, April 1, 2020 [1][2]']
+
+        df = df.drop(
+            columns=['State', 'Census population, April 1, 2020 [1][2]'], errors='ignore')
+
+        return df
+    except Exception as e:
+        logging.error(f"Error in map_state_population: {e}")
+        return df  # Zwracamy oryginalny DataFrame w przypadku błędu

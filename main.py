@@ -1,4 +1,3 @@
-from turtle import pd
 import utils
 
 police_shootings_data_url = 'https://uploads.kodilla.com/bootcamp/pro-data-visualization/files/fatal-police-shootings-data.csv'
@@ -40,16 +39,18 @@ def main():
 
     # Mapowanie kodów stanów na pełne nazwy w oryginalnym DataFrame
     df = utils.map_state_codes(df, states_codes_df)
-
-    # Mapowanie populacji stanów na oryginalny DataFrame
+    print(df.columns)
+    # Mapowanie populacji stanów
     df = utils.map_state_population(df, states_population_df)
 
-    # Zmiana całkowitej daty do samego roku
-    utils.convert_date_to_year_only(df)
+    final_df = df.groupby('state').agg({
+        'name': 'count',
+        'population': 'first'
+    }).rename(columns={'name': 'total_shootings'}).reset_index()
 
-    # Pobranie tylko potrzebnych kolumn
-    final_df = df[['year', 'state', 'population 2010', 'population 2020']]
-    final_df = final_df.groupby(['state']).first().reset_index()
+    final_df['shootings_per_1k_people'] = (
+        final_df['total_shootings'] / final_df['population']) * 1000
+
     print(final_df)
 
 
